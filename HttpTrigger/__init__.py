@@ -1,4 +1,5 @@
 import logging
+from Utils.insert import insert_data_postgres
 from Utils.request import get_phones
 import azure.functions as func
 from Utils.tratament import get_values_json
@@ -15,6 +16,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         )
     else:
         phones = get_values_json(phones)
+        insert_data_postgres(phones)
         return func.HttpResponse(
             body=json.dumps(phones),
             status_code=200,
