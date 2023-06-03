@@ -44,5 +44,5 @@ def insert_elastic_search(data):
     url = os.environ["UrlSearch"]
     index = os.environ["IndexSearch"]
     res = req.post(f"{url}/indexes/{index}/docs/index?api-version=2021-04-30-preview", headers={"api-key": os.environ["TokenSearch"]}, json={"value": data}).json()
-    logging.info("dados inseridos com sucesso");
+    logging.info("dados inseridos com sucesso!");
     return;
