@@ -14,10 +14,10 @@ def insert_data_postgres(values: list[dict] ):
         list(map(lambda x: x["image"] , values)),
 
     ]
-    string = os.environ["ConnectionString"].split(";")
+    string = os.environ["ConnectionString"]
     
     try:
-        with pg.connect(host=string[0],database=string[1],user=string[2],password=string[3]) as conn:
+        with pg.connect(string) as conn:
             with conn.cursor() as cursor:
                 logging.info("Iniciando Inserção")
                 query = "INSERT INTO \"Phones\" (id,name,maker,image) VALUES (UNNEST(%s),UNNEST(%s),UNNEST(%s),UNNEST(%s)) ON CONFLICT DO NOTHING"
@@ -29,8 +29,8 @@ def insert_data_postgres(values: list[dict] ):
             logging.info("Iniciando inserção no elastic Search")
             insert_elastic_search(values)
         return;
-    except:
-        logging.warn("Tentativa de inserir dados repetidos")
+    except Exception as e:
+        logging.error(e)
 
 def create_model_json(json):
     return {
@@ -49,5 +49,5 @@ def insert_elastic_search(data):
         index = os.environ["IndexSearch"]
         res = req.post(f"{url}/indexes/{index}/docs/index?api-version=2021-04-30-preview", headers={"api-key": os.environ["TokenSearch"]}, json={"value": data}).json()
         logging.info("dados inseridos com sucesso!");
-    except:
-        logging.warn("Tentativa de inserir dados repetidos")
+    except Exception as e:
+        logging.error(e)
