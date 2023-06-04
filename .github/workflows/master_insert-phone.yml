@@ -7,7 +7,7 @@ name: Build and deploy Python project to Azure Function App - insert-phone
 on:
   push:
     branches:
-      - master
+      - develop
   workflow_dispatch:
 
 env:
