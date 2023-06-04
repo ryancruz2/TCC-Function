@@ -16,18 +16,21 @@ def insert_data_postgres(values: list[dict] ):
     ]
     string = os.environ["ConnectionString"].split(";")
     
-    with pg.connect(host=string[0],database=string[1],user=string[2],password=string[3]) as conn:
-        with conn.cursor() as cursor:
-            logging.info("Iniciando Inserção")
-            query = "INSERT INTO \"Phones\" (id,name,maker,image) VALUES (UNNEST(%s),UNNEST(%s),UNNEST(%s),UNNEST(%s)) ON CONFLICT DO NOTHING"
-            cursor.execute(query,data)
-            conn.commit()
-            cursor.close()
-        conn.close()
-        logging.info("Dados Inseridos no Postgres com sucesso")
-        logging.info("Iniciando inserção no elastic Search")
-        insert_elastic_search(values)
+    try:
+        with pg.connect(host=string[0],database=string[1],user=string[2],password=string[3]) as conn:
+            with conn.cursor() as cursor:
+                logging.info("Iniciando Inserção")
+                query = "INSERT INTO \"Phones\" (id,name,maker,image) VALUES (UNNEST(%s),UNNEST(%s),UNNEST(%s),UNNEST(%s)) ON CONFLICT DO NOTHING"
+                cursor.execute(query,data)
+                conn.commit()
+                cursor.close()
+            conn.close()
+            logging.info("Dados Inseridos no Postgres com sucesso")
+            logging.info("Iniciando inserção no elastic Search")
+            insert_elastic_search(values)
         return;
+    except:
+        logging.warn("Tentativa de inserir dados repetidos")
 
 def create_model_json(json):
     return {
@@ -39,10 +42,12 @@ def create_model_json(json):
     }
 
 def insert_elastic_search(data):
-    data = list(map(create_model_json, data))
+    try:
+        data = list(map(create_model_json, data))
 
-    url = os.environ["UrlSearch"]
-    index = os.environ["IndexSearch"]
-    res = req.post(f"{url}/indexes/{index}/docs/index?api-version=2021-04-30-preview", headers={"api-key": os.environ["TokenSearch"]}, json={"value": data}).json()
-    logging.info("dados inseridos com sucesso!");
-    return;
+        url = os.environ["UrlSearch"]
+        index = os.environ["IndexSearch"]
+        res = req.post(f"{url}/indexes/{index}/docs/index?api-version=2021-04-30-preview", headers={"api-key": os.environ["TokenSearch"]}, json={"value": data}).json()
+        logging.info("dados inseridos com sucesso!");
+    except:
+        logging.warn("Tentativa de inserir dados repetidos")
